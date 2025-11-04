@@ -1,0 +1,82 @@
+#include "Leg.h"
+#include <Arduino.h>
+#include <Multiservo.h>
+
+Leg::Leg(short int pin_hip, short int pin_knee, short int pin_ankle, short int angle_hip, short int angle_knee, short int angle_ankle, char leg_side)
+{  
+    leg_Angle = {angle_hip, angle_knee, angle_ankle};
+    if(leg_side == 'l' || leg_side == 'r') {
+        side = leg_side; //side에 어느 쪽 다리인지에 대한 문자 하나를 입력받아서 왼쪽인지 오른쪽 다리인지 구별할 수 있다.
+    }
+
+    HIP.attach(pin_hip); //HIP, KNEE, ANKLE.attach()함수를 사용하여 아두이노의 특정 핀과 연결할 수 있다.
+    KNEE.attach(pin_knee); 
+    ANKLE.attach(pin_ankle);
+    setupLeg(); //Leg함수내부에서 기본 각도로 로봇의 각도를 조절할 수 있다.
+}
+
+Leg::Leg() {
+
+}
+
+Angle Leg::getStaticAngle() {
+    return leg_Angle;
+}
+
+void Leg::stand() {
+    moving({1, 1, 1}); //기존 서보모터 각도에서 각 관절의 각도를 1만큼 회전시킨다. 근데 이게 무슨 의미가 있지..? 왜 필요할까?
+}
+
+void Leg::setupStaticAngle(short int angle_hip, short int angle_knee, short int angle_ankle)
+{
+    leg_Angle = {angle_hip, angle_knee, angle_ankle}; //이 함수를 쓴다해서 서보모터를 움직일 순 없다.
+}                                                     //하지만 이 함수를 사용하여 leg_Angle구조체의 각도값을 바꿀 수있고, 나중에 setupLeg같은 함수에서 사용될 수 있는 구조체이다.
+
+bool Leg::setupSide(char leg_side)
+{
+    if(leg_side == 'l' || leg_side == 'r') {
+        side = leg_side;
+        return true;  //여기에서 반환값이 true이거나 false일 때 아무일도 일어나지 않지만, 이 값들을 기반으로 후속 조치를 우리가 취할 수 있다. 
+    }
+    else {
+        return false;
+    }
+}
+
+void Leg::setupLeg() //Leg클래스 안에 포함된 setupLeg 함수를 사용하여 각 서보모터를 기본 각도로 돌려줄 수 있다.
+{
+    HIP.write(leg_Angle.hip);  //HIP, KNEE, ANKLE.write()함수를 써야 서보모터를 직접 움직여서 제어할 수 있다.
+    KNEE.write(leg_Angle.knee);
+    ANKLE.write(leg_Angle.ankle);
+
+    leg_CurentAngle = {leg_Angle.hip, leg_Angle.knee, leg_Angle.ankle};  //HIP, KNEE, ANKLE의 각도를 바꾼 후에 현재의 각도에 대한 정보를 수집하여 leg_CurentAngle에 저장한다.
+}
+
+Angle Leg::getCurentAngle() //반환형이 Angle(구조체)인 Leg클래스에 속해있는 함수 getCurentAngle로 현재 서보모터 각도값 얻기 ㄱㄴ
+{
+    return leg_CurentAngle; //현재 로봇의 서보모터의 회전각도를 알고 싶을 때 이 코드를 사용할 수 있다.
+}
+
+bool Leg::moving(Angle angle) //Leg클래스 안에 포함되어 있는 moving함수-->현재의 각도에서 얼마나 더 각도를 조절할지를 angle구조체에 입력하여 그만큼 서보모터를 추가적으로 회전시킬 수 있다.
+{
+    if(side == 'l') {
+        HIP.write(leg_Angle.hip + angle.hip);
+        leg_CurentAngle.hip = leg_Angle.hip + angle.hip;  //HIP, KNEE, ANKLE.write()함수를 써야 서보모터를 직접 움직여서 제어할 수 있다.
+        KNEE.write(leg_Angle.knee + angle.knee);          //leg_Angle은 자료형이 Angle(구조체)로, leg_Angle안에 3개 관절의 서보모터 각도값이 저장되어있다.
+        leg_CurentAngle.knee = leg_Angle.knee + angle.knee; //기존의 각도에서 추가각도만큼 서보모터를 회전시킨 후 최종각도를 leg_CurentAngle구조체에 값들을 넣는다.
+        ANKLE.write(leg_Angle.ankle + angle.ankle);
+        leg_CurentAngle.ankle = leg_Angle.ankle + angle.ankle;
+    }
+    else if (side == 'r') {
+        HIP.write(leg_Angle.hip - angle.hip);  //HIP, KNEE, ANKLE.write()함수를 써야 서보모터를 직접 움직여서 제어할 수 있다.
+        leg_CurentAngle.hip = leg_Angle.hip - angle.hip;   //leg_Angle은 자료형이 Angle(구조체)로, leg_Angle안에 3개 관절의 서보모터 각도값이 저장되어있다.
+        KNEE.write(leg_Angle.knee - angle.knee);   //기존의 각도에서 추가각도만큼 서보모터를 회전시킨 후 최종각도를 leg_CurentAngle구조체에 값들을 넣는다.
+        leg_CurentAngle.knee = leg_Angle.knee - angle.knee;  //여기에선 다만 오른쪽 다리이기 때문에 회전시키는 각도만큼을 기존 각도에서 차감해준 것의 의도를 가졌다고 생각했다.
+        ANKLE.write(leg_Angle.ankle - angle.ankle);
+        leg_CurentAngle.ankle = leg_Angle.ankle - angle.ankle;
+    }
+    else {
+        return false;
+    }
+    return true;
+}
