@@ -9,24 +9,11 @@ Leg::Leg(short int pin_hip, short int pin_knee, short int pin_ankle, short int a
         side = leg_side; //side에 어느 쪽 다리인지에 대한 문자 하나를 입력받아서 왼쪽인지 오른쪽 다리인지 구별할 수 있다.
     }
 
-    L1_HIP.attach(pin_hip); //HIP, KNEE, ANKLE.attach()함수를 사용하여 아두이노의 특정 핀과 연결할 수 있다.
-    L1_KNEE.attach(pin_knee); 
-    L1_ANKLE.attach(pin_ankle);
-    L1_HIP.attach(pin_hip);
-    L1_KNEE.attach(pin_knee); 
-    L1_ANKLE.attach(pin_ankle);
-    L1_HIP.attach(pin_hip); 
-    L1_KNEE.attach(pin_knee); 
-    L1_ANKLE.attach(pin_ankle);
-    L1_HIP.attach(pin_hip); 
-    L1_KNEE.attach(pin_knee); 
-    L1_ANKLE.attach(pin_ankle);
-    L1_HIP.attach(pin_hip);
-    L1_KNEE.attach(pin_knee); 
-    L1_ANKLE.attach(pin_ankle);
-    L1_HIP.attach(pin_hip); 
-    L1_KNEE.attach(pin_knee); 
-    L1_ANKLE.attach(pin_ankle);
+   for (int i = 0; i < 6; i++) {
+    HIP[i].attach(hipPins[i]);  //이런 식으로 for문을 활용하여 코드 길이를 매우 단축시켰다.
+    KNEE[i].attach(kneePins[i]);
+    ANKLE[i].attach(anklePins[i]);
+   }
 
     setupLeg(); //Leg함수내부에서 기본 각도로 로봇의 각도를 조절할 수 있다.
 }
@@ -98,25 +85,14 @@ bool Leg::moving(Angle angle) //Leg클래스 안에 포함되어 있는 moving�
 }
 
 void Leg::MarchForward(){
-   L1_HIP.write( ); //어떤 값 넣을진 알아서 생각하자...
-   L1_KNEE.write( );          //leg_Angle은 자료형이 Angle(구조체)로, leg_Angle안에 3개 관절의 서보모터 각도값이 저장되어있다                  
-   L1_ANKLE.write( );       //기존의 각도에서 추가각도만큼 서보모터를 회전시킨 후 최종각도를 leg_CurentAngle구조체에 값들을 넣는다.
-   L3_HIP.write( );         //일단 각도값은 거미로봇 완성품을 받은 후에 돌아가는지 봐야해. 그러면 일단은... 다리만 받았을 때 그 다리들이 돌아가는지 확인해야하니깐 그것에 관한 코드를 만들어보자.
-   L3_KNEE.write( ); 
-   L3_ANKLE.write( );
-   R2_HIP.write( );
-   R2_KNEE.write( ); 
-   R2_ANKLE.write( );
-   delay(500);
-   L2_HIP.write( );
-   L2_KNEE.write( );          //leg_Angle은 자료형이 Angle(구조체)로, leg_Angle안에 3개 관절의 서보모터 각도값이 저장되어있다                  
-   L2_ANKLE.write( );       //기존의 각도에서 추가각도만큼 서보모터를 회전시킨 후 최종각도를 leg_CurentAngle구조체에 값들을 넣는다.
-   R1_HIP.write( );
-   R1_KNEE.write( ); 
-   R1_ANKLE.write( );
-   R3_HIP.write( );
-   R3_KNEE.write( ); 
-   R3_ANKLE.write( );       //이런 식으로 만들면 작동하지 않을까..?라는 생각이 든다. 
+    forward_HIP=[];
+    forward_KNEE=[];
+    forward_ANKLE=[];
+    for (int i = 0; i < 6; i++) {
+      HIP[i].write(forward_HIP[i]);  //이런 식으로 for문을 활용하여 코드 길이를 매우 단축시켰다.
+      KNEE[i].write(forward_KNEE[i]);
+      ANKLE[i].write(forward_ANKLE[i]);
+   }
    delay(500); //성수가 보내준 영상에서도 앞으로 움직이는 코드 짤 때 움직임 2개면 충분했어. 움직임 2개 사이에 딜레이 걸어서 무한루프 돌리면 작동할 수도 있을 것 같은 느낌이 든다...
 }
 
@@ -124,4 +100,3 @@ void loop(){
 
 
 }
-
